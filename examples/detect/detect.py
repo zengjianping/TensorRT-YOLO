@@ -59,6 +59,7 @@ def main():
     model = DeployCGDet(args.engine) if args.cudaGraph else DeployDet(args.engine)
 
     batchs = image_batches(args.input, model.batch, args.cudaGraph)
+    print('Image batches:', model.batch, batchs)
 
     if len(batchs) > 2:
         cpu_timer = CpuTimer()

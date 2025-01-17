@@ -129,6 +129,7 @@ int main(int argc, char** argv) {
         }
 
         auto model = createModel(enginePath, useCudaGraph);
+        printf("Batch size: %d\n", model->batch);
 
         if (fs::is_regular_file(inputPath)) {
             cv::Mat cvimage = cv::imread(inputPath, cv::IMREAD_COLOR);

@@ -1,7 +1,7 @@
 # 设置项目
 cmake_minimum_required(VERSION 3.15.0)
 cmake_policy(SET CMP0091 NEW)
-cmake_policy(SET CMP0146 OLD)
+#cmake_policy(SET CMP0146 OLD)
 project(detect LANGUAGES CXX CUDA)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
