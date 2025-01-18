@@ -24,8 +24,9 @@
 # ==============================================================================
 import os
 import sys
-from collections.abc import Sequence, Set
+#from collections.abc import Sequence, Set
 from glob import glob
+from typing import Tuple, Sequence, Set
 
 import cv2
 import numpy as np
@@ -113,7 +114,7 @@ def generate_labels(labels_file: str) -> Sequence[str]:
         return [label.strip() for label in f]
 
 
-def xyxyr2xyxyxyxy(box: RotatedBox) -> Sequence[tuple[float, float]]:  # type: ignore
+def xyxyr2xyxyxyxy(box: RotatedBox) -> Sequence[Tuple[float, float]]:  # type: ignore
     """
     Convert a rotated bounding box to the coordinates of its four corners.
 
@@ -122,7 +123,7 @@ def xyxyr2xyxyxyxy(box: RotatedBox) -> Sequence[tuple[float, float]]:  # type: i
         and a rotation angle (theta).
 
     Returns:
-        Sequence[tuple[float, float]]: A list of four corner coordinates,
+        Sequence[Tuple[float, float]]: A list of four corner coordinates,
         each as an (x, y) tuple.
     """
     cos_value, sin_value = np.cos(box.theta), np.sin(box.theta)

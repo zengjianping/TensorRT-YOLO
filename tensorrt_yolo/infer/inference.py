@@ -23,8 +23,8 @@
 # Desc    :   Classes for deploying YOLO models, including
 #             detection, OBB, segmentation and pose estimation.
 # ==============================================================================
-from collections.abc import Sequence
-from typing import Union
+#from collections.abc import Sequence
+from typing import Union, Type, Sequence
 
 from cv2.typing import MatLike
 
@@ -81,7 +81,7 @@ class BaseDeploy:
         return self._model.predict(images)
 
 
-def create_deploy_class(deploy_class: type) -> type[BaseDeploy]:
+def create_deploy_class(deploy_class: type) -> Type[BaseDeploy]:
     """
     Factory function to create a specific deployment class.
 
@@ -89,7 +89,7 @@ def create_deploy_class(deploy_class: type) -> type[BaseDeploy]:
         deploy_class (type): The deploy class for the specific type.
 
     Returns:
-        type[BaseDeploy]: A new deployment class.
+        Type[BaseDeploy]: A new deployment class.
     """
 
     class Deploy(BaseDeploy):

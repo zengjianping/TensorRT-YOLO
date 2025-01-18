@@ -52,6 +52,7 @@ def trtyolo():
 @click.option('--conf_thres', default=0.25, help='Confidence threshold for object detection. Defaults to 0.25.', type=float)
 @click.option('--opset_version', default=11, help='ONNX opset version. Defaults to 11.', type=int)
 @click.option('-s', '--simplify', is_flag=True, help='Whether to simplify the exported ONNX. Defaults is False.')
+@click.option('--not_subst_head', is_flag=True, help='Whether to substitute detection head. Defaults is False.')
 def export(
     model_dir,
     model_filename,
@@ -67,6 +68,7 @@ def export(
     conf_thres,
     opset_version,
     simplify,
+    not_subst_head
 ):
     """Export models for TensorRT-YOLO.
 
@@ -101,6 +103,7 @@ def export(
             opset_version=opset_version,
             simplify=simplify,
             repo_dir=repo_dir,
+            subst_head=not not_subst_head
         )
     else:
         logger.error("Please provide correct export parameters.")

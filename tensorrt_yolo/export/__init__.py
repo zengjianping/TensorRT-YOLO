@@ -2,7 +2,7 @@ import sys
 import warnings
 from copy import deepcopy
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 import onnx
 from loguru import logger
@@ -144,8 +144,8 @@ def load_model(version: str, weights: str, repo_dir: Optional[str] = None) -> Op
 
 
 def update_model(
-    model: torch.nn.Module, version: str, dynamic: bool, max_boxes: int, iou_thres: float, conf_thres: float
-) -> tuple[Optional[torch.nn.Module], str]:
+    model: torch.nn.Module, version: str, dynamic: bool, subst_head: bool, max_boxes: int, iou_thres: float, conf_thres: float
+) -> Tuple[Optional[torch.nn.Module], str]:
     """
     Update YOLO model with dynamic settings.
 
@@ -158,7 +158,7 @@ def update_model(
         conf_thres (float): Confidence threshold for object detection.
 
     Returns:
-        tuple[Optional[torch.nn.Module], str]:
+        Tuple[Optional[torch.nn.Module], str]:
             - Updated YOLO model or None if the version is not supported.
             - The name of the detection head.
     """
@@ -173,12 +173,16 @@ def update_model(
             detect_head = HEADS[class_name].get(version)
             if detect_head:
                 supported = True
-                if class_name != "Classify":
-                    detect_head.dynamic = dynamic
-                    detect_head.max_det = max_boxes
-                    detect_head.iou_thres = iou_thres
-                    detect_head.conf_thres = conf_thres
-                m.__class__ = detect_head
+                if subst_head:
+                    if class_name != "Classify":
+                        detect_head.dynamic = dynamic
+                        detect_head.max_det = max_boxes
+                        detect_head.iou_thres = iou_thres
+                        detect_head.conf_thres = conf_thres
+                    m.__class__ = detect_head
+                    logger.info(f'Substituted detection head - {class_name}.')
+                else:
+                    logger.info(f'Not substituted detection head - {class_name}.')
             break
 
     if not supported:
@@ -200,6 +204,7 @@ def torch_export(
     opset_version: Optional[int] = 11,
     simplify: Optional[bool] = True,
     repo_dir: Optional[str] = None,
+    subst_head: Optional[bool] = True
 ) -> None:
     """
     Export YOLO model to ONNX format using Torch.
@@ -224,7 +229,7 @@ def torch_export(
 
     dynamic = batch <= 0
     batch = 1 if dynamic else batch
-    model, head_name = update_model(model, version, dynamic, max_boxes, iou_thres, conf_thres)
+    model, head_name = update_model(model, version, dynamic, subst_head, max_boxes, iou_thres, conf_thres)
     if model is None:
         return
 
@@ -255,30 +260,31 @@ def torch_export(
     model_onnx = onnx.load(onnx_filepath)
     onnx.checker.check_model(model_onnx)
 
-    # Update dynamic axes names
-    shapes = {
-        'num_dets': ["batch" if dynamic else batch, 1],
-        'det_boxes': ["batch" if dynamic else batch, max_boxes, 4],
-        'det_scores': ["batch" if dynamic else batch, max_boxes],
-        'det_classes': ["batch" if dynamic else batch, max_boxes],
-    }
-    if head_name == "OBB":
-        shapes['det_boxes'] = ["batch" if dynamic else batch, max_boxes, 5]
-    elif head_name == "Pose":
-        shapes['det_kpts'] = ["batch" if dynamic else batch, max_boxes, preds[-1].shape[-2], preds[-1].shape[-1]]
-    elif head_name == "Segment":
-        shapes['det_masks'] = [
-            "batch" if dynamic else batch,
-            max_boxes,
-            "height" if dynamic else imgsz[0],
-            "width" if dynamic else imgsz[1],
-        ]
-    elif head_name == "Classify":
-        shapes = {'top5': ["batch" if dynamic else batch, 5, 2]}
+    if subst_head:
+        # Update dynamic axes names
+        shapes = {
+            'num_dets': ["batch" if dynamic else batch, 1],
+            'det_boxes': ["batch" if dynamic else batch, max_boxes, 4],
+            'det_scores': ["batch" if dynamic else batch, max_boxes],
+            'det_classes': ["batch" if dynamic else batch, max_boxes],
+        }
+        if head_name == "OBB":
+            shapes['det_boxes'] = ["batch" if dynamic else batch, max_boxes, 5]
+        elif head_name == "Pose":
+            shapes['det_kpts'] = ["batch" if dynamic else batch, max_boxes, preds[-1].shape[-2], preds[-1].shape[-1]]
+        elif head_name == "Segment":
+            shapes['det_masks'] = [
+                "batch" if dynamic else batch,
+                max_boxes,
+                "height" if dynamic else imgsz[0],
+                "width" if dynamic else imgsz[1],
+            ]
+        elif head_name == "Classify":
+            shapes = {'top5': ["batch" if dynamic else batch, 5, 2]}
 
-    for node in model_onnx.graph.output:
-        for idx, dim in enumerate(node.type.tensor_type.shape.dim):
-            dim.dim_param = str(shapes[node.name][idx])
+        for node in model_onnx.graph.output:
+            for idx, dim in enumerate(node.type.tensor_type.shape.dim):
+                dim.dim_param = str(shapes[node.name][idx])
 
     if simplify:
         try:
