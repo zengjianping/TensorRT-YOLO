@@ -9,7 +9,7 @@ mkdir build && cd build
 #cmake -DTENSORRT_PATH=/usr/local/tensorrt -DCMAKE_CUDA_FLAGS="--generate-code=arch=compute_86,code=[compute_86,sm_86] --generate-code=arch=compute_89,code=[compute_89,sm_89]" ..
 
 code_flags=""
-for arch in 86 89
+for arch in 89 86 61
 do
   code_flags+="--generate-code=arch=compute_$arch,code=[compute_$arch,sm_$arch] "
 done
