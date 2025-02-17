@@ -5,6 +5,10 @@ cmake_policy(SET CMP0091 NEW)
 project(detect LANGUAGES CXX CUDA)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE RELEASE)
+endif()
+
 # 设置 C++ 标准
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -78,16 +82,33 @@ else()
 endif()
 
 # 编译选项
-if(MSVC)
-    target_compile_options(detect PRIVATE
-        $<$<CONFIG:Release>:-O2>
-    )
-    set_property(TARGET detect PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-else()
-    target_compile_options(detect PRIVATE
-        $<$<COMPILE_LANGUAGE:CXX>:-O3 -flto=auto>
-    )
-    target_link_options(detect PRIVATE
-        $<$<COMPILE_LANGUAGE:CXX>:-O3 -flto=auto>
-    )
-endif()
+#if(MSVC)
+#    target_compile_options(detect PRIVATE
+#        $<$<CONFIG:Release>:-O2>
+#    )
+#    set_property(TARGET detect PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+#else()
+#    target_compile_options(detect PRIVATE
+#        $<$<COMPILE_LANGUAGE:CXX>:-O3 -flto=auto>
+#    )
+#    target_link_options(detect PRIVATE
+#        $<$<COMPILE_LANGUAGE:CXX>:-O3 -flto=auto>
+#    )
+#endif()
+
+set(gcc_like_cxx "$<COMPILE_LANG_AND_ID:CXX,ARMClang,AppleClang,Clang,GNU,LCC>")
+set(msvc_cxx "$<COMPILE_LANG_AND_ID:CXX,MSVC>")
+target_compile_options(detect INTERFACE
+    "$<${gcc_like_cxx}:$<BUILD_INTERFACE:-Wall;-Wextra;-Wshadow;-Wformat=2;-Wunused>>"
+    "$<${msvc_cxx}:$<BUILD_INTERFACE:-W3>>"
+)
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OPTIMAZE_FLAG} -Wall -Wno-unknown-pragmas -Wfatal-errors -fPIC")
+set(CMAKE_C_FLAGS_DEBUG "-O0 -g")
+set(CMAKE_C_FLAGS_RELEASE "-O3")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lm -pthread -Wall -lstdc++ -std=c++17")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
+

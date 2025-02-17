@@ -27,10 +27,23 @@ BaseTemplate<T>::BaseTemplate(const std::string& file, bool cudaMem, int device)
 // Processes the inference results for a specific index.
 template <>
 DetResult BaseTemplate<DetResult>::postProcess(const int idx) {
-    int    num     = static_cast<int*>(this->tensorInfos[1].tensor.host())[idx];
-    float* boxes   = static_cast<float*>(this->tensorInfos[2].tensor.host()) + idx * this->tensorInfos[2].dims.d[1] * this->tensorInfos[2].dims.d[2];
-    float* scores  = static_cast<float*>(this->tensorInfos[3].tensor.host()) + idx * this->tensorInfos[3].dims.d[1];
-    int*   classes = static_cast<int*>(this->tensorInfos[4].tensor.host()) + idx * this->tensorInfos[4].dims.d[1];
+    int num = 0;
+    float* boxes = nullptr;
+    float* scores = nullptr;
+    int* classes = nullptr;
+
+    if (this->tensorInfos[4].name == std::string("num_dets")) {
+        num     = static_cast<int*>(this->tensorInfos[4].tensor.host())[idx];
+        boxes   = static_cast<float*>(this->tensorInfos[2].tensor.host()) + idx * this->tensorInfos[2].dims.d[1] * this->tensorInfos[2].dims.d[2];
+        scores  = static_cast<float*>(this->tensorInfos[1].tensor.host()) + idx * this->tensorInfos[3].dims.d[1];
+        classes = static_cast<int*>(this->tensorInfos[3].tensor.host()) + idx * this->tensorInfos[4].dims.d[1];
+    }
+    else {
+        num     = static_cast<int*>(this->tensorInfos[1].tensor.host())[idx];
+        boxes   = static_cast<float*>(this->tensorInfos[2].tensor.host()) + idx * this->tensorInfos[2].dims.d[1] * this->tensorInfos[2].dims.d[2];
+        scores  = static_cast<float*>(this->tensorInfos[3].tensor.host()) + idx * this->tensorInfos[3].dims.d[1];
+        classes = static_cast<int*>(this->tensorInfos[4].tensor.host()) + idx * this->tensorInfos[4].dims.d[1];
+    }
 
     DetResult result;
     result.num = num;

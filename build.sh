@@ -16,5 +16,5 @@ done
 echo "FLAGS: $code_flags"
 cmake -DTENSORRT_PATH=/usr/local/tensorrt -DCMAKE_CUDA_FLAGS="$code_flags" ..
 
-cmake --build . -j8 --config Release
+cmake --build . -j8
 
