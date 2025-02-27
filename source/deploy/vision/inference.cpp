@@ -35,8 +35,8 @@ DetResult BaseTemplate<DetResult>::postProcess(const int idx) {
     if (this->tensorInfos[4].name == std::string("num_dets")) {
         num     = static_cast<int*>(this->tensorInfos[4].tensor.host())[idx];
         boxes   = static_cast<float*>(this->tensorInfos[2].tensor.host()) + idx * this->tensorInfos[2].dims.d[1] * this->tensorInfos[2].dims.d[2];
-        scores  = static_cast<float*>(this->tensorInfos[1].tensor.host()) + idx * this->tensorInfos[3].dims.d[1];
-        classes = static_cast<int*>(this->tensorInfos[3].tensor.host()) + idx * this->tensorInfos[4].dims.d[1];
+        scores  = static_cast<float*>(this->tensorInfos[1].tensor.host()) + idx * this->tensorInfos[1].dims.d[1];
+        classes = static_cast<int*>(this->tensorInfos[3].tensor.host()) + idx * this->tensorInfos[3].dims.d[1];
     }
     else {
         num     = static_cast<int*>(this->tensorInfos[1].tensor.host())[idx];
