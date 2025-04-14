@@ -23,8 +23,10 @@ set(CUDA_PATH ${CUDA_TOOLKIT_ROOT_DIR})                 # 缓存CUDA路径
 
 ## Pybind11
 set(PYBIND11_FINDPYTHON ON)                                                            # 开启寻找Python
+if (PYBIND11_FINDPYTHON)
 find_package(Python COMPONENTS Interpreter Development REQUIRED)                       # 查找Python解释器和开发组件
 find_package(pybind11 CONFIG REQUIRED)                                                 # 查找pybind11包
+endif()
 
 # 添加编译选项
 option(TENSORRT_PATH "TensorRT Path. Example: /usr/local/tensorrt" "")                 # 添加编译选项，用于指定TensorRT路径
@@ -107,6 +109,7 @@ else()
 endif()
 
 # 定义目标 pydeploy
+if (PYBIND11_FINDPYTHON)
 pybind11_add_module(pydeploy ${PROJECT_SOURCE_DIR}/source/deploy/pybind/deploy.cpp)                   # 创建pybind11模块
 add_compile_files(pydeploy)                                                                           # 添加源文件
 configure_cuda_trt(pydeploy)                                                                          # 配置CUDA和TensorRT
@@ -126,3 +129,5 @@ configure_file(
     ${CMAKE_SOURCE_DIR}/tensorrt_yolo/c_lib_wrap.py.in
     ${CMAKE_SOURCE_DIR}/tensorrt_yolo/c_lib_wrap.py
 ) # 配置文件
+endif()
+
