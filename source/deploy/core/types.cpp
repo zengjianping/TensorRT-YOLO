@@ -2,6 +2,12 @@
 
 namespace deploy {
 
+#define IS_TRT_VERSION_GE(major, minor, patch)                  \
+  ((NV_TENSORRT_MAJOR > major) ||                               \
+   (NV_TENSORRT_MAJOR == major && NV_TENSORRT_MINOR > minor) || \
+   (NV_TENSORRT_MAJOR == major && NV_TENSORRT_MINOR == minor && \
+    NV_TENSORRT_PATCH >= patch))
+
 size_t getDataTypeSize(nvinfer1::DataType dataType) {
     switch (dataType) {
         case nvinfer1::DataType::kINT32:
@@ -12,7 +18,9 @@ size_t getDataTypeSize(nvinfer1::DataType dataType) {
         case nvinfer1::DataType::kBOOL:
         case nvinfer1::DataType::kUINT8:
         case nvinfer1::DataType::kINT8:
+#if IS_TRT_VERSION_GE(8, 6, 0)
         case nvinfer1::DataType::kFP8:
+#endif
             return 1U;
     }
     return 0;

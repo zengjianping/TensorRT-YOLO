@@ -15,6 +15,7 @@ file(GLOB_RECURSE SOURCES
     ${CMAKE_SOURCE_DIR}/plugin/efficientIdxNMSPlugin/*.cpp
     ${CMAKE_SOURCE_DIR}/plugin/efficientIdxNMSPlugin/*.cu
 )
+list(REMOVE_ITEM SOURCES "${CMAKE_SOURCE_DIR}/plugin/common/vfcCommon.cpp")
 
 # 将搜索到的文件添加到目标中
 target_sources(custom_plugins PRIVATE ${SOURCES})

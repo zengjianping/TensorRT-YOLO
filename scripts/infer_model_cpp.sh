@@ -1,6 +1,5 @@
 #!/bin/bash
 
-IMAGE_DIR=datas/images
 MODEL_DIR=datas/models
 MODEL_NAME=yolo11n
 IMAGE_DIR=datas/images
