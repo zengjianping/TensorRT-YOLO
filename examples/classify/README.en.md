@@ -17,7 +17,7 @@ Please download the required `yolo11n-cls.pt` model file and test images through
 > ```bash
 > pip install -U tensorrt_yolo
 > ```
-> 
+>
 > If you want to experience the same inference speed as C++, please refer to [Install-tensorrt_yolo](../../docs/en/build_and_install.md#install-tensorrt_yolo) to build the latest version of `tensorrt_yolo` yourself.
 
 Use the following command to export the ONNX format model. For detailed `trtyolo` CLI export methods, please read [Model Export](../../docs/en/model_export.md):
@@ -41,11 +41,6 @@ trtexec --onnx=models/yolo11n-cls.onnx --saveEngine=models/yolo11n-cls.engine --
 
 ### Inference Using CLI
 
-> [!NOTE] 
-> The `--cudaGraph` command added from version 4.0 can further accelerate the inference process, but this feature only supports static models.
-> 
-> From version 5.1 and later, support for image classification inference is added. The command `-m 4, --mode 4` is used to select the image classification.
-
 1. Use the `trtyolo` command-line tool from the `tensorrt_yolo` library for inference. Run the following command to view help information:
 
     ```bash
@@ -55,7 +50,7 @@ trtexec --onnx=models/yolo11n-cls.onnx --saveEngine=models/yolo11n-cls.engine --
 2. Run the following command for inference:
 
     ```bash
-    trtyolo infer -e models/yolo11n-cls.engine -m 4 -i images -o output -l labels.txt --cudaGraph
+    trtyolo infer -e models/yolo11n-cls.engine -m 0 -i images -o output -l labels.txt
     ```
 
     The inference results will be saved in the `output` folder, and a visualization result will be generated.
@@ -66,7 +61,7 @@ trtexec --onnx=models/yolo11n-cls.onnx --saveEngine=models/yolo11n-cls.engine --
 2. Run the following command for inference:
 
     ```bash
-    python classify.py -e models/yolo11n-cls.engine -i images -o output -l labels.txt --cudaGraph
+    python classify.py -e models/yolo11n-cls.engine -i images -o output -l labels.txt
     ```
 
 ### Inference Using C++
@@ -75,14 +70,8 @@ trtexec --onnx=models/yolo11n-cls.onnx --saveEngine=models/yolo11n-cls.engine --
 2. Compile `classify.cpp` into an executable:
 
     ```bash
-    # Compile using xmake
-    xmake f -P . --tensorrt="/path/to/your/TensorRT" --deploy="/path/to/your/TensorRT-YOLO"
-    xmake -P . -r
-
-    # Compile using cmake
-    mkdir -p build && cd build
-    cmake -DTENSORRT_PATH="/path/to/your/TensorRT" -DDEPLOY_PATH="/path/to/your/TensorRT-YOLO" .. 
-    cmake --build . -j8 --config Release
+    cmake -S . -B build -DTRT_PATH="/path/to/your/TensorRT" -DDEPLOY_PATH="/path/to/your/TensorRT-YOLO"
+    cmake --build build -j8 --config Release
     ```
 
     After compilation, the executable file will be generated in the `bin` folder of the project root directory.
@@ -91,7 +80,7 @@ trtexec --onnx=models/yolo11n-cls.onnx --saveEngine=models/yolo11n-cls.engine --
 
     ```bash
     cd bin
-    ./classify -e ../models/yolo11n-cls.engine -i ../images -o ../output -l ../labels.txt --cudaGraph
+    ./classify -e ../models/yolo11n-cls.engine -i ../images -o ../output -l ../labels.txt
     ```
 
 Through the above methods, you can successfully complete model inference.
