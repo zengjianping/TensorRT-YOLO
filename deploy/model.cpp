@@ -148,6 +148,13 @@ DetectRes BaseModel<DetectRes>::postProcess(int idx) {
         float left = boxes[base_index], top = boxes[base_index + 1];
         float right = boxes[base_index + 2], bottom = boxes[base_index + 3];
 
+        if (backend_->option.config.scale_coord) {
+            left *= backend_->max_shape.w;
+            top *= backend_->max_shape.z;
+            right *= backend_->max_shape.w;
+            bottom *= backend_->max_shape.z;
+        }
+
         affine_transform.applyTransform(left, top, &left, &top);
         affine_transform.applyTransform(right, bottom, &right, &bottom);
 

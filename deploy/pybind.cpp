@@ -148,6 +148,7 @@ void binding_option_module(py::module& m) {
         .def("enable_cuda_memory", &deploy::InferOption::enableCudaMem, "Inference data already in CUDA memory.")
         .def("enable_managed_memory", &deploy::InferOption::enableManagedMemory, "Enable managed memory for inference.")
         .def("enable_performance_report", &deploy::InferOption::enablePerformanceReport, "Enable performance report for inference.")
+        .def("enable_scale_coord", &deploy::InferOption::enableScaleCoord, "Enable scaling coordinate.")
         .def("enable_swap_rb", &deploy::InferOption::enableSwapRB, "Enable RGB-to-BGR swap for image input.")
         .def("set_border_value", &deploy::InferOption::setBorderValue, "Set border value for image resizing (used for padding).")
         .def("set_normalize_params", &deploy::InferOption::setNormalizeParams, "Set normalization parameters for image preprocessing.")

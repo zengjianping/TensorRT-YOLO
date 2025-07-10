@@ -55,6 +55,7 @@ def main():
     option = InferOption()
     option.enable_swap_rb()
     option.enable_performance_report()
+    #option.enable_scale_coord()
     # option.set_normalize_params([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]) # PP-YOLOE, PP-YOLOE+
 
     model = DetectModel(args.engine, option)

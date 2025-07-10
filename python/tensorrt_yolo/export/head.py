@@ -41,6 +41,7 @@ from ultralytics.nn.modules import (
     YOLOEDetect,
     YOLOESegment,
     v10Detect,
+    RTDETRDecoder,
 )
 from ultralytics.nn.modules.conv import autopad
 from ultralytics.utils.checks import check_version
@@ -59,6 +60,7 @@ __all__ = [
     "UltralyticsSegment",
     "UltralyticsPose",
     "UltralyticsClassify",
+    "UltralyticsRTDETR",
 ]
 
 
@@ -356,6 +358,67 @@ class BaseUltralyticsHead(nn.Module):
         dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
 
         return dbox, cls
+
+
+class UltralyticsRTDETR(RTDETRDecoder):
+    """Ultralytics RTDETRDecoder head for detection models."""
+
+    max_det = 100
+    iou_thres = 0.45
+    conf_thres = 0.25
+    image_size = [0,0]
+
+    def forward(self, x):
+        self.export = True
+        y = super().forward(x)
+
+        batch_size, max_dets = y.shape[0:2]
+        max_dets = min(max_dets, self.max_det)
+
+        bboxes, scores = y.split((4, self.nc), -1)
+        bboxes[:,:,[0,2]] *= self.image_size[1]
+        bboxes[:,:,[1,3]] *= self.image_size[0]
+        bboxes[:,:,0:2] = bboxes[:,:,0:2] - bboxes[:,:,2:4] / 2
+        bboxes[:,:,2:4] = bboxes[:,:,0:2] + bboxes[:,:,2:4]
+
+        scores, labels = scores.max(dim=-1)
+        labels = labels.to(torch.int32)
+    
+        scores, index = torch.topk(scores, max_dets, dim=-1)
+        labels = torch.gather(labels, dim=1, index=index)
+        bboxes = torch.gather(bboxes, dim=1, index=index.unsqueeze(-1).tile(1, 1, bboxes.shape[-1]))
+        #num_dets = torch.ones((batch_size, 1), dtype=torch.int32) * max_dets
+        num_dets = torch.stack([torch.sum(score>=self.conf_thres) for score in scores]).view((-1,1)).to(torch.int32)
+
+        result = (num_dets, bboxes, scores, labels)
+
+        return result
+
+
+class UltralyticsRTDETR1(RTDETRDecoder):
+    """Ultralytics RTDETRDecoder head for detection models."""
+
+    max_det = 100
+    iou_thres = 0.45
+    conf_thres = 0.25
+    image_size = 640
+
+    def forward(self, x):
+        self.export = True
+        y = super().forward(x)
+
+        bboxes, scores = y.split((4, self.nc), -1)
+        num_classes = scores.shape[2]
+        logits = torch.log(scores * math.sqrt(num_classes))
+        bboxes *= self.image_size
+
+        result = EfficientNMS_TRT.apply(
+            bboxes, logits,
+            self.conf_thres,
+            self.iou_thres,
+            self.max_det,
+        )
+        return result
 
 
 class UltralyticsDetect(Detect, BaseUltralyticsHead):

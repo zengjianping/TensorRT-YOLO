@@ -28,6 +28,11 @@ struct ProcessConfig {
     float  border_value = 114.0f;                                                 // < 边界值，用于填充
     float3 alpha        = make_float3(1.0 / 255.0f, 1.0 / 255.0f, 1.0 / 255.0f);  // < 归一化系数
     float3 beta         = make_float3(0.0f, 0.0f, 0.0f);                          // < 偏移量
+    bool   scale_coord  = false;                                                  // < 模型输出的归一化坐标，需要缩放到图像坐标
+
+    void enableScaleCoord() {
+        scale_coord = true;
+    }
 
     /**
      * @brief 设置图像通道交换
@@ -117,6 +122,10 @@ struct DEPLOYAPI InferOption {
      */
     void enableSwapRB() {
         config.enableSwapRB();
+    }
+
+    void enableScaleCoord() {
+        config.enableScaleCoord();
     }
 
     /**

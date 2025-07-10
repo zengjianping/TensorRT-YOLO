@@ -23,6 +23,7 @@ class ModelExporter:
 
     def __init__(self) -> None:
         from .head import (
+            UltralyticsRTDETR,
             UltralyticsClassify,
             UltralyticsDetect,
             UltralyticsOBB,
@@ -55,6 +56,11 @@ class ModelExporter:
             "det_classes": {0: "batch"},
         }
         self.__head_config = {
+            "RTDETRDecoder": {
+                "class_map": {"rtdetr": UltralyticsRTDETR},
+                "output_names": self.__output_names,
+                "dynamic_axes": self.__dynamic_axes,
+            },
             "Detect": {
                 "class_map": {
                     "yolov3": YOLODetect,
@@ -153,7 +159,7 @@ class ModelExporter:
         if version in yolo_versions_with_repo:
             repo_dir = yolo_versions_with_repo[version] if repo_dir is None else repo_dir
             self.__model = torch.hub.load(repo_dir, 'custom', path=weights, source=source, _verbose=False)
-        elif version in ['yolov8', 'yolov10', 'yolo11', 'yolo12', 'yolo-world', 'yoloe', 'ultralytics']:
+        elif version in ['yolov8', 'yolov10', 'yolo11', 'yolo12', 'yolo-world', 'yoloe', 'ultralytics', 'rtdetr']:
             from ultralytics import YOLO
 
             self.__model = YOLO(model=weights, verbose=False).model
@@ -175,7 +181,7 @@ class ModelExporter:
                 )
             sys.exit(1)
 
-    def register(self, batch: int, max_boxes: int, iou_thres: float, conf_thres: float) -> None:
+    def register(self, batch: int, max_boxes: int, iou_thres: float, conf_thres: float, image_size: int = [640,640]) -> None:
         self.__model = deepcopy(self.__model).to(torch.device("cpu"))
         supported = False
 
@@ -195,6 +201,8 @@ class ModelExporter:
                         detect_head.max_det = max_boxes
                         detect_head.iou_thres = iou_thres
                         detect_head.conf_thres = conf_thres
+                    if class_name == 'RTDETRDecoder':
+                        detect_head.image_size = image_size
                     m.__class__ = detect_head
                 break
 
@@ -313,7 +321,7 @@ def torch_export(
     """
     exporter = ModelExporter()
     exporter.load(weights, version, repo_dir, custom_classes)
-    exporter.register(batch, max_boxes, iou_thres, conf_thres)
+    exporter.register(batch, max_boxes, iou_thres, conf_thres, imgsz)
     exporter.export(output, imgsz, opset_version, simplify)
 
 
