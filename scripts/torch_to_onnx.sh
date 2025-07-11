@@ -22,7 +22,7 @@ $CMD_EXPORT \
     --opset 18 \
     --imgsz 640 \
     --max_boxes 100 \
-    --iou_thres 1.0 \
+    --iou_thres 0.7 \
     --conf_thres 0.1 \
-    --batch 1 -s
+    --batch -1 -s
 

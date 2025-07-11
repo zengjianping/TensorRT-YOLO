@@ -372,24 +372,20 @@ class UltralyticsRTDETR(RTDETRDecoder):
         self.export = True
         y = super().forward(x)
 
-        batch_size, max_dets = y.shape[0:2]
-        max_dets = min(max_dets, self.max_det)
-
         bboxes, scores = y.split((4, self.nc), -1)
         bboxes[:,:,[0,2]] *= self.image_size[1]
         bboxes[:,:,[1,3]] *= self.image_size[0]
         bboxes[:,:,0:2] = bboxes[:,:,0:2] - bboxes[:,:,2:4] / 2
         bboxes[:,:,2:4] = bboxes[:,:,0:2] + bboxes[:,:,2:4]
 
+        max_dets = min(y.shape[1], self.max_det)
         scores, labels = scores.max(dim=-1)
-        labels = labels.to(torch.int32)
-    
         scores, index = torch.topk(scores, max_dets, dim=-1)
         labels = torch.gather(labels, dim=1, index=index)
         bboxes = torch.gather(bboxes, dim=1, index=index.unsqueeze(-1).tile(1, 1, bboxes.shape[-1]))
-        #num_dets = torch.ones((batch_size, 1), dtype=torch.int32) * max_dets
-        num_dets = torch.stack([torch.sum(score>=self.conf_thres) for score in scores]).view((-1,1)).to(torch.int32)
-
+        num_dets = torch.ge(scores, self.conf_thres).sum(-1, True)
+        labels = labels.to(torch.int32)
+        num_dets = num_dets.to(torch.int32)
         result = (num_dets, bboxes, scores, labels)
 
         return result
