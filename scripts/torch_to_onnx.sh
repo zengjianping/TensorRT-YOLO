@@ -1,7 +1,7 @@
 #!/bin/bash
 
-VERSION=rtdetr
-MODEL_NAME=rtdetr-l
+VERSION=ultralytics
+MODEL_NAME=yolo11s
 MODEL_DIR=datas/models
 MODEL_PATH=$MODEL_DIR/$MODEL_NAME.pt
 CLASS_NAMES="person,car,airplane"
