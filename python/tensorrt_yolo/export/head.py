@@ -64,6 +64,44 @@ __all__ = [
 ]
 
 
+class NonMaxSuppression_ONNX(torch.autograd.Function):
+    """NMS block for YOLO-fused model for ONNX."""
+
+    @staticmethod
+    def forward(
+        ctx,
+        boxes,
+        scores,
+        max_output_boxes_per_class,
+        iou_threshold,
+        score_threshold,
+        center_point_box: int = 1,
+    ) -> Tuple[Tensor]:
+        num_selected_indices = torch.randint(0, 100, (100, 3), dtype=torch.int64)
+        return num_selected_indices
+
+    @staticmethod
+    def symbolic(
+        g,
+        boxes,
+        scores,
+        max_output_boxes_per_class,
+        iou_threshold,
+        score_threshold,
+        center_point_box: int = 1,
+    ) -> Tuple[Value]:
+        selected_indices = g.op(
+            'NonMaxSuppression',
+            boxes,
+            scores,
+            max_output_boxes_per_class,
+            iou_threshold,
+            score_threshold,
+            center_point_box_i=center_point_box
+        )
+        return selected_indices
+
+
 class EfficientNMS_TRT(torch.autograd.Function):
     """NMS block for YOLO-fused model for TensorRT."""
 
@@ -415,6 +453,40 @@ class UltralyticsRTDETR1(RTDETRDecoder):
             self.max_det,
         )
         return result
+
+
+class UltralyticsDetect1(Detect, BaseUltralyticsHead):
+    """Ultralytics Detect head for detection models."""
+
+    def forward(self, x):
+        x = [torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1) for i in range(self.nl)]
+        org_bboxes, org_scores = self._new_inference(x)
+        org_scores = org_scores.sigmoid()
+
+        bboxes = org_bboxes.transpose(1, 2)
+        scores = org_scores.transpose(1, 2)
+
+        indices = NonMaxSuppression_ONNX.apply(
+            bboxes, org_scores,
+            torch.tensor([self.max_det], dtype=torch.int64),
+            torch.tensor([self.iou_thres], dtype=torch.float32),
+            torch.tensor([self.conf_thres], dtype=torch.float32)
+        )
+
+        bboxes = self.gather(bboxes, indices)
+        scores, labels = self.gather(scores, indices).max(axis=-1)
+        num_dets = torch.ge(scores, self.conf_thres).sum(-1, True)
+        labels = labels.to(torch.int32)
+        num_dets = num_dets.to(torch.int32)
+        bboxes[:,:,0:2] = bboxes[:,:,0:2] - bboxes[:,:,2:4] / 2
+        bboxes[:,:,2:4] = bboxes[:,:,0:2] + bboxes[:,:,2:4]
+        result = (num_dets, bboxes, scores, labels)
+
+        return result
+
+    def gather(self, target:torch.Tensor, indices:torch.Tensor):
+        pick_indices = indices[:, -1:].repeat(1, target.shape[2]).unsqueeze(0)
+        return torch.gather(target, 1, pick_indices)
 
 
 class UltralyticsDetect(Detect, BaseUltralyticsHead):
