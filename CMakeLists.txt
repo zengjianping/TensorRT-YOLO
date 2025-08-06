@@ -10,6 +10,13 @@ project(TensorRT-YOLO
     DESCRIPTION "🚀 Easier & Faster YOLO Deployment Toolkit for NVIDIA 🛠️"
 )
 
+set(CMAKE_DEBUG_POSTFIX d)
+set(TARGET_PLATFORM "x64")
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE RELEASE)
+endif()
+
 # 生成编译数据库（供clangd等工具使用）
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

@@ -121,10 +121,14 @@ ClassifyRes BaseModel<ClassifyRes>::postProcess(int idx) {
 // DetectModel 的后处理方法实现
 template <>
 DetectRes BaseModel<DetectRes>::postProcess(int idx) {
-    auto& num_tensor   = backend_->tensor_infos[1];
-    auto& box_tensor   = backend_->tensor_infos[2];
-    auto& score_tensor = backend_->tensor_infos[3];
-    auto& class_tensor = backend_->tensor_infos[4];
+    int num_idx = 1, box_idx = 2, score_idx = 3, class_idx = 4;
+    if (backend_->tensor_infos[2].name == "num_dets") {
+        num_idx = 2; box_idx = 3; score_idx = 1; class_idx = 4;
+    }
+    auto& num_tensor   = backend_->tensor_infos[num_idx];
+    auto& box_tensor   = backend_->tensor_infos[box_idx];
+    auto& score_tensor = backend_->tensor_infos[score_idx];
+    auto& class_tensor = backend_->tensor_infos[class_idx];
 
     int    num     = static_cast<int*>(num_tensor.buffer->host())[idx];
     float* boxes   = static_cast<float*>(box_tensor.buffer->host()) + idx * box_tensor.shape.d[1] * box_tensor.shape.d[2];
