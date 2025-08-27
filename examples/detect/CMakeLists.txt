@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.16)
 cmake_policy(SET CMP0091 NEW)  # 确保 MSVC 运行时库策略正确
 
 #-------------------------------------------------------------------------------
@@ -24,7 +24,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(OpenCV REQUIRED)
 
 # CUDA 配置
-find_package(CUDAToolkit REQUIRED)
+#find_package(CUDAToolkit REQUIRED)
+find_package(CUDA REQUIRED)
+set(CUDA_PATH ${CUDA_TOOLKIT_ROOT_DIR})
 
 # 允许用户覆盖默认的 CUDA 架构
 if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
@@ -101,6 +103,7 @@ endfunction()
 function(configure_cuda_trt_target target)
     # 包含目录
     target_include_directories(${target} PRIVATE
+        ${CUDA_INCLUDE_DIRS}
         ${TRT_PATH}/include
     )
 
@@ -111,7 +114,8 @@ function(configure_cuda_trt_target target)
 
     # 添加链接库
     target_link_libraries(${target} PRIVATE
-        CUDA::cudart
+        #CUDA::cudart
+        ${CUDA_cudart_LIBRARY}
         ${TRT_LIBS}
     )
 
