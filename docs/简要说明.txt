@@ -1,0 +1,32 @@
+# 编译安装
+
+## 编译tensorrt推理库
+1. 执行根目录的脚本：build.sh
+2. 在现场工作机器上没有python环境，需将build.sh中的“pip install "pybind11[global]”行注释掉，同时将CMakeLists.txt中的“BUILD_PYTHON”设置为OFF
+
+## 编译安装python包
+1. cd python && ./install_trtyolo.sh
+2. 可以时用trtyolo命令执行模型推理和模型导出任务。
+
+## 编译模型推理的测试程序
+1. cd examples/detect && ./build.sh
+
+# 模型转换和测试
+
+## 转换torch模型到onnx模型
+1. 执行脚本：scripts/torch_to_onnx.sh，注意修改相应参数；
+2. 例如转换模型yolo11s.pt，在同一目录生成onnx文件yolo11s.onnx。
+
+## 转换onnx模型到engine模型
+1. 执行脚本：scripts/onnx_to_engine.sh，注意修改相应参数；
+2. 例如转换模型yolo11s.onnx，在同一目录生成onnx文件yolo11s.engine。
+
+## 在现场工作机器上转换tensorrt模型
+1. 将onnx文件拷贝到现场工作机器上，例如：scp -P 12044 datas/models/yolo11s.onnx root@192.168.8.77:/home/zengjp/datas/models/
+2. 在远程机器上进入到TensorRT-YOLO目录（/home/zengjp/projects/TensorRT-YOLO-20250805），如上说明将onnx模型转换为engine模型。
+
+## 模型转换
+1. 执行脚本：scripts/infer_model_cpp.sh，注意修改相应参数。
+2. 结果图片保存在图片目录下的results子目录下。
+
+

@@ -6,7 +6,7 @@ MODEL_DIR=datas/models
 MODEL_PATH=$MODEL_DIR/$MODEL_NAME.pt
 CLASS_NAMES="person,car,airplane"
 
-USE_WHEEL=0
+USE_WHEEL=1
 if [ $USE_WHEEL == 1 ]; then
     CMD_EXPORT="trtyolo export"
 else
