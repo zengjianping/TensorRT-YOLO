@@ -7,7 +7,7 @@ FROM nvcr.io/nvidia/tritonserver:24.12-py3-min
 # 元数据
 LABEL maintainer="laugh12321@vip.qq.com"
 LABEL description="🚀 Easier & Faster YOLO Deployment Toolkit for NVIDIA 🛠️"
-LABEL version="6.2.0"
+LABEL version="6.4.0"
 
 # 从 Python 镜像中复制核心 Python 文件
 COPY --from=python_stage /usr/local/bin/python3.12 /usr/local/bin/python3.12

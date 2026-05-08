@@ -8,56 +8,30 @@ This example uses the yolo11n model to demonstrate how to perform Object Detecti
 
 Please download the required `yolo11n.pt` model file and test images through the provided link, and save the model file to the `models` folder, and place the extracted test images into the `images` folder after unzipping.
 
-## Model Export
+## Model Convert
 
 > [!IMPORTANT]
 >
-> If you only want to export the ONNX model (with TensorRT plugins) that can be used for inference in this project through the `tensorrt_yolo` provided Command Line Interface (CLI) tool `trtyolo`, you can install it via [PyPI](https://pypi.org/project/tensorrt-yolo) by simply executing the following command:
->
-> ```bash
-> pip install -U tensorrt_yolo
-> ```
->
-> If you want to experience the same inference speed as C++, please refer to [Install-tensorrt_yolo](../../docs/en/build_and_install.md#install-tensorrt_yolo) to build the latest version of `tensorrt_yolo` yourself.
+> Please first export the model weights to ONNX, then use the bundled [`trtyolo-export`](https://github.com/laugh12321/trtyolo-export) tool to convert the ONNX model into TensorRT-YOLO compatible outputs and build it into a TensorRT engine.
 
-Use the following command to export the ONNX format with the [EfficientNMS](https://github.com/NVIDIA/TensorRT/tree/main/plugin/efficientNMSPlugin) plugin. For detailed `trtyolo` CLI export methods, please read [Model Export](../../docs/en/model_export.md):
+Use the following commands to export ONNX first and then convert it into the structure required by this project. The converted ONNX will automatically integrate the [EfficientNMS](https://github.com/NVIDIA/TensorRT/tree/main/plugin/efficientNMSPlugin) plugin:
 
 ```bash
-trtyolo export -w models/yolo11n.pt -v yolo11 -o models -s
+yolo export model=models/yolo11n.pt format=onnx batch=1
+trtyolo-export -i models/yolo11n.onnx -o models/yolo11n-trtyolo.onnx -s
 ```
 
-After running the above command, a `yolo11n.onnx` file with a `batch_size` of 1 will be generated in the `models` folder. Next, use the `trtexec` tool to convert the ONNX file to a TensorRT engine (fp16):
+After running the commands above, the `models` folder will contain the original ONNX file `yolo11n.onnx` and the converted file `yolo11n-trtyolo.onnx`. Next, use `trtexec` to build a TensorRT engine from the converted ONNX file (fp16):
 
 ```bash
-trtexec --onnx=models/yolo11n.onnx --saveEngine=models/yolo11n.engine --fp16
+trtexec --onnx=models/yolo11n-trtyolo.onnx --saveEngine=models/yolo11n.engine --fp16
 ```
 
 ## Model Inference
 
-> [!IMPORTANT]
->
-> The `tensorrt_yolo` installed via [PyPI](https://pypi.org/project/tensorrt-yolo) only provides the ONNX model (with TensorRT plugins) for inference in this project and does not provide inference capabilities.
-> If you want to experience the same inference speed as C++, please refer to [Install-tensorrt_yolo](../../docs/en/build_and_install.md#install-tensorrt_yolo) to build the latest version of `tensorrt_yolo` yourself.
-
-### Inference Using CLI
-
-1. Use the `trtyolo` command-line tool from the `tensorrt_yolo` library for inference. Run the following command to view help information:
-
-    ```bash
-    trtyolo infer --help
-    ```
-
-2. Run the following command for inference:
-
-    ```bash
-    trtyolo infer -e models/yolo11n.engine -m 1 -i images -o output -l labels.txt
-    ```
-
-    The inference results will be saved in the `output` folder, and a visualization result will be generated.
-
 ### Inference Using Python
 
-1. Use the `tensorrt_yolo` library to run the example script `detect.py` for inference.
+1. Use the `trtyolo` library to run the example script `detect.py` for inference.
 2. Run the following command for inference:
 
     ```bash
@@ -66,11 +40,11 @@ trtexec --onnx=models/yolo11n.onnx --saveEngine=models/yolo11n.engine --fp16
 
 ### Inference Using C++
 
-1. Ensure that the project has been compiled according to the [`TensorRT-YOLO` Compilation](../../docs/en/build_and_install.md#tensorrt-yolo-compile).
+1. Ensure that the project has been compiled according to the project documentation.
 2. Compile `detect.cpp` into an executable:
 
     ```bash
-    cmake -S . -B build -DTRT_PATH="/path/to/your/TensorRT" -DDEPLOY_PATH="/path/to/your/TensorRT-YOLO"
+    cmake -S . -B build
     cmake --build build -j8 --config Release
     ```
 

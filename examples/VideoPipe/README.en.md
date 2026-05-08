@@ -8,29 +8,33 @@ This example uses the YOLO11n model to demonstrate how to integrate the TensorRT
 
 Please download the required `yolo11n.pt` model file and test video through the provided link, and save both to the `workspace` folder.
 
-## Model Export
+## Model Convert
 
-Use the following command to export the ONNX format with the [EfficientNMS](https://github.com/NVIDIA/TensorRT/tree/main/plugin/efficientNMSPlugin) plugin. For detailed `trtyolo` CLI export methods, please read [Model Export](../../docs/en/model_export.md):
+> [!IMPORTANT]
+>
+> Please first export the model weights to ONNX, then use the bundled [`trtyolo-export`](https://github.com/laugh12321/trtyolo-export) tool to convert the ONNX model into TensorRT-YOLO compatible outputs and build it into a TensorRT engine.
+
+Use the following commands to export ONNX first and then convert it into the structure required by this project. The converted ONNX will automatically integrate the [EfficientNMS](https://github.com/NVIDIA/TensorRT/tree/main/plugin/efficientNMSPlugin) plugin:
 
 ```bash
-trtyolo export -w workspace/yolo11n.pt -v yolo11 -o workspace -b 2 -s
+yolo export model=workspace/yolo11n.pt format=onnx batch=2
+trtyolo-export -i workspace/yolo11n.onnx -o workspace/yolo11n-trtyolo.onnx -s
 ```
 
-After running the above command, a `yolo11n.onnx` file with a `batch_size` of 2 will be generated in the `models` folder. Next, use the `trtexec` tool to convert the ONNX file to a TensorRT engine (fp16):
+After running the commands above, the `workspace` folder will contain the original ONNX file `yolo11n.onnx` and the converted file `yolo11n-trtyolo.onnx`. Next, use `trtexec` to build a TensorRT engine from the converted ONNX file (fp16):
 
 ```bash
-trtexec --onnx=workspace/yolo11n.onnx --saveEngine=workspace/yolo11n.engine --fp16
+trtexec --onnx=workspace/yolo11n-trtyolo.onnx --saveEngine=workspace/yolo11n.engine --fp16
 ```
 
 ## Project Execution
 
-1. Ensure that the project has been compiled according to the [`TensorRT-YOLO` Compilation](../../docs/en/build_and_install.md#tensorrt-yolo-compile).
-1. Ensure that the project has been compiled following the instructions for [`TensorRT-YOLO` compilation](../../docs/en/build_and_install.md##tensorrt-yolo-compilation) and [`VideoPipe` compilation and debugging](https://github.com/sherlockchou86/VideoPipe/blob/master/README.md#compilation-and-debugging) (only the default five steps need to be executed, without adding any other compilation options).
+1. Make sure that the project has been compiled according to the project documentation and the [`VideoPipe` compilation and debugging](https://github.com/sherlockchou86/VideoPipe/blob/master/README.md#compilation-and-debugging) (only the default five steps need to be executed, without adding any other compilation options).
 
 2. Compile the project into an executable:
 
     ```bash
-    cmake -S . -B build -DTRT_PATH="/path/to/your/TensorRT" -DDEPLOY_PATH="/path/to/your/TensorRT-YOLO" -DVIDEOPIPE_PATH="/path/to/your/VideoPipe"
+    cmake -S . -B build -D VIDEOPIPE_PATH="/path/to/your/VideoPipe"
     cmake --build . -j8 --config Release
     ```
 
