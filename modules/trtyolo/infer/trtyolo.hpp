@@ -423,6 +423,13 @@ public:
     void enableSwapRB();
 
     /**
+     * @brief 缩放坐标
+     *
+     * @param scaleCoord
+     */
+    void enableScaleCoord();
+
+    /**
      * @brief 设置边界值
      *
      * @param border_value

@@ -64,6 +64,7 @@ inline void checkCudaError(cudaError_t code, const char* file, int line) {
  */
 struct ProcessConfig {
     bool   swap_rb      = false;                                                  // < 是否交换 R 和 B 通道
+    bool   scale_coord  = false;                                                  // < 是否缩放坐标
     float  border_value = 114.0f;                                                 // < 边界值，用于填充
     float3 alpha        = make_float3(1.0 / 255.0f, 1.0 / 255.0f, 1.0 / 255.0f);  // < 归一化系数
     float3 beta         = make_float3(0.0f, 0.0f, 0.0f);                          // < 偏移量

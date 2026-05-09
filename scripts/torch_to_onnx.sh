@@ -1,28 +1,28 @@
 #!/bin/bash
 
-VERSION=ultralytics
-MODEL_NAME=yolo11s
-MODEL_DIR=datas/models
-MODEL_PATH=$MODEL_DIR/$MODEL_NAME.pt
-CLASS_NAMES="person,car,airplane"
+MODEL_DIR=datas/model2
+MODEL_NAME=yolo26s
 
-USE_WHEEL=1
-if [ $USE_WHEEL == 1 ]; then
-    CMD_EXPORT="trtyolo export"
-else
-    export PYTHONPATH=python:$PYTHONPATH
-    CMD_EXPORT="python tools/trtyolo.py export"
-fi
+echo "### Exporting ONNX format using ultralytics..."
+yolo export \
+    model=${MODEL_DIR}/${MODEL_NAME}.pt \
+    format=onnx \
+    opset=18 \
+    imgsz=640 \
+    dynamic=true \
+    simplify=true
 
-$CMD_EXPORT \
-    --version $VERSION \
-    --weights $MODEL_PATH \
-    --output $MODEL_DIR \
-    --names "$CLASS_NAMES" \
+mv ${MODEL_DIR}/${MODEL_NAME}.onnx ${MODEL_DIR}/${MODEL_NAME}_u.onnx
+
+echo "### Exporting ONNX format using trtyolo..."
+trtyolo-export \
+    -i ${MODEL_DIR}/${MODEL_NAME}_u.onnx \
+    -o ${MODEL_DIR}/${MODEL_NAME}.onnx \
     --opset 18 \
-    --imgsz 640 \
-    --max_boxes 100 \
+    --max-dets 100 \
     --iou_thres 0.7 \
     --conf_thres 0.1 \
-    --batch -1 -s
+    --simplify
+
+echo "### Finished!"
 

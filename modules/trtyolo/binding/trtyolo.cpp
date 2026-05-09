@@ -209,6 +209,7 @@ void binding_option_module(py::module& m) {
         // .def("enable_managed_memory", &trtyolo::InferOption::enableManagedMemory, "Enable managed memory for inference.")
         .def("enable_profile", &trtyolo::InferOption::enablePerformanceReport, "Enable performance profile for inference.")
         .def("enable_swap_rb", &trtyolo::InferOption::enableSwapRB, "Enable RGB-to-BGR swap for image input.")
+        .def("enable_scale_coord", &trtyolo::InferOption::enableScaleCoord, "Enable scaling of coordinates for image input.")
         .def("set_border_value", &trtyolo::InferOption::setBorderValue, "Set border value for image resizing (used for padding).")
         .def("set_normalize_params", &trtyolo::InferOption::setNormalizeParams, "Set normalization parameters for image preprocessing.")
         .def("set_input_dimensions", &trtyolo::InferOption::setInputDimensions, "Set the input dimensions (height, width) for the model.");

@@ -88,6 +88,7 @@ public:
     void        enablePerformanceReport() { infer_config.enable_performance_report = true; }
     void        setInputDimensions(int width, int height) { infer_config.input_shape = make_int2(height, width); }
     void        enableSwapRB() { infer_config.config.swap_rb = true; }
+    void        enableScaleCoord() { infer_config.config.scale_coord = true; }
     void        setBorderValue(float value) { infer_config.config.border_value = value; }
     void        setNormalizeParams(const std::vector<float>& mean, const std::vector<float>& std) {
         assert(mean.size() == 3 && std.size() == 3 && "ProcessConfig: requires the size of mean and std to be 3.");
@@ -112,6 +113,7 @@ void InferOption::enableCudaMem() { impl_->enableCudaMem(); }
 void InferOption::enableManagedMemory() { impl_->enableManagedMemory(); }
 void InferOption::enablePerformanceReport() { impl_->enablePerformanceReport(); }
 void InferOption::enableSwapRB() { impl_->enableSwapRB(); }
+void InferOption::enableScaleCoord() { impl_->enableScaleCoord(); }
 void InferOption::setBorderValue(float border_value) { impl_->setBorderValue(border_value); }
 void InferOption::setNormalizeParams(const std::vector<float>& mean, const std::vector<float>& std) { impl_->setNormalizeParams(mean, std); }
 void InferOption::setInputDimensions(int width, int height) { impl_->setInputDimensions(height, width); }
@@ -219,10 +221,18 @@ public:
 
     // DetectModel 的后处理方法实现
     DetectRes postProcessDetect(int idx) {
-        auto& num_tensor   = backend_->tensor_infos[1];
-        auto& box_tensor   = backend_->tensor_infos[2];
-        auto& score_tensor = backend_->tensor_infos[3];
-        auto& class_tensor = backend_->tensor_infos[4];
+        //auto& num_tensor   = backend_->tensor_infos[1];
+        //auto& box_tensor   = backend_->tensor_infos[2];
+        //auto& score_tensor = backend_->tensor_infos[3];
+        //auto& class_tensor = backend_->tensor_infos[4];
+        int num_idx = 1, box_idx = 2, score_idx = 3, class_idx = 4;
+        if (backend_->tensor_infos[2].name == "num_dets") {
+            num_idx = 2; box_idx = 3; score_idx = 1; class_idx = 4;
+        }
+        auto& num_tensor   = backend_->tensor_infos[num_idx];
+        auto& box_tensor   = backend_->tensor_infos[box_idx];
+        auto& score_tensor = backend_->tensor_infos[score_idx];
+        auto& class_tensor = backend_->tensor_infos[class_idx];
 
         int    num     = static_cast<int*>(num_tensor.buffer->host())[idx];
         float* boxes   = static_cast<float*>(box_tensor.buffer->host()) + idx * box_tensor.shape.d[1] * box_tensor.shape.d[2];
@@ -245,6 +255,12 @@ public:
             int   base_index = i * box_size;
             float left = boxes[base_index], top = boxes[base_index + 1];
             float right = boxes[base_index + 2], bottom = boxes[base_index + 3];
+            if (backend_->infer_config.config.scale_coord) {
+                left *= backend_->max_shape.w;
+                top *= backend_->max_shape.z;
+                right *= backend_->max_shape.w;
+                bottom *= backend_->max_shape.z;
+            }
 
             transform.apply(left, top, &left, &top);
             transform.apply(right, bottom, &right, &bottom);
