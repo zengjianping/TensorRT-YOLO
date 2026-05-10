@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MODEL_DIR=datas/model2
+MODEL_DIR=datas/models
 MODEL_NAME=yolo26s
 IMAGE_DIR=datas/images/image00
 RESULT_DIR=${IMAGE_DIR}/results/${MODEL_NAME}

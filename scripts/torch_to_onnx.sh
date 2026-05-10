@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MODEL_DIR=datas/model2
+MODEL_DIR=datas/models
 MODEL_NAME=yolo26s
 
 echo "### Exporting ONNX format using ultralytics..."
