@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MODEL_DIR=datas/model2
+MODEL_DIR=datas/models
 MODEL_NAME=yolo26s
 USE_FP16="--fp16" # FP16模型推理更快，可能模型效果会有一点点降低，如果不使用FP16模型则用#注释掉此行
 
